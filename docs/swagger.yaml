@@ -1,0 +1,120 @@
+basePath: /
+definitions:
+  domain.Status:
+    enum:
+    - in_progress
+    - ready
+    type: string
+    x-enum-varnames:
+    - StatusInProgress
+    - StatusReady
+  handler.CreateTaskRequest:
+    properties:
+      code:
+        type: string
+      language:
+        type: string
+    type: object
+  handler.CreateTaskResponse:
+    properties:
+      task_id:
+        type: string
+    type: object
+  handler.TaskResultResponse:
+    properties:
+      result:
+        type: string
+    type: object
+  handler.TaskStatusResponse:
+    properties:
+      status:
+        $ref: '#/definitions/domain.Status'
+    type: object
+host: localhost:8000
+info:
+  contact: {}
+  description: API for asynchronous code execution tasks.
+  title: Code Execution Service API
+  version: "1.0"
+paths:
+  /result/{task_id}:
+    get:
+      description: Returns the result of a completed task
+      parameters:
+      - description: Task ID
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.TaskResultResponse'
+        "202":
+          description: Task is still processing
+          schema:
+            type: string
+        "404":
+          description: Task not found
+          schema:
+            type: string
+      summary: Get task result
+      tags:
+      - tasks
+  /status/{task_id}:
+    get:
+      description: Returns the current processing status of a task
+      parameters:
+      - description: Task ID
+        in: path
+        name: task_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.TaskStatusResponse'
+        "404":
+          description: Task not found
+          schema:
+            type: string
+      summary: Get task status
+      tags:
+      - tasks
+  /task:
+    post:
+      consumes:
+      - application/json
+      description: Submit code for asynchronous processing
+      parameters:
+      - description: Task data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.CreateTaskResponse'
+        "400":
+          description: Invalid request
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Create a new task
+      tags:
+      - tasks
+swagger: "2.0"
