@@ -10,7 +10,7 @@ import (
 
 type UserStorage struct {
 	users map[string]domain.User
-	mux   sync.RWMutex
+	mu    sync.RWMutex
 }
 
 func NewUserStorage() *UserStorage {
@@ -20,19 +20,19 @@ func NewUserStorage() *UserStorage {
 }
 
 func (u *UserStorage) Create(user domain.User) error {
-	u.mux.Lock()
-	defer u.mux.Unlock()
+	u.mu.Lock()
+	defer u.mu.Unlock()
 	_, exists := u.users[user.Login]
 	if exists {
-		return fmt.Errorf("user already exists")
+		return domain.ErrUserAlreadyExists
 	}
 	u.users[user.Login] = user
 	return nil
 }
 
 func (u *UserStorage) GetByLogin(login string) (domain.User, error) {
-	u.mux.RLock()
-	defer u.mux.RUnlock()
+	u.mu.RLock()
+	defer u.mu.RUnlock()
 	user, exists := u.users[login]
 	if exists {
 		return user, nil

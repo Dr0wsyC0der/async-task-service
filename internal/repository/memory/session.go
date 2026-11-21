@@ -10,7 +10,7 @@ import (
 
 type SessionStorage struct {
 	sessions map[string]domain.Session
-	mux      sync.RWMutex
+	mu       sync.RWMutex
 }
 
 func NewSessionStorage() *SessionStorage {
@@ -20,8 +20,8 @@ func NewSessionStorage() *SessionStorage {
 }
 
 func (s *SessionStorage) Create(session domain.Session) error {
-	s.mux.Lock()
-	defer s.mux.Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	_, exists := s.sessions[session.ID]
 	if exists {
 		return fmt.Errorf("session already exists")
@@ -31,8 +31,8 @@ func (s *SessionStorage) Create(session domain.Session) error {
 }
 
 func (s *SessionStorage) GetByID(id string) (domain.Session, error) {
-	s.mux.RLock()
-	defer s.mux.RUnlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	if session, exists := s.sessions[id]; exists {
 		return session, nil
 	}
