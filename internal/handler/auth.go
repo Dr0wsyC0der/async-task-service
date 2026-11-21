@@ -14,8 +14,8 @@ type AuthHandler struct {
 }
 
 type CredentialsRequest struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Username string `json:"username" validate:"required"`
+	Password string `json:"password" validate:"required"`
 }
 
 type LoginResponse struct {
@@ -26,6 +26,18 @@ func NewAuthHandler(service *service.AuthService) *AuthHandler {
 	return &AuthHandler{service: service}
 }
 
+// Login godoc
+// @Summary      Log in
+// @Description  Verify credentials and return a session token.
+// @Tags         auth
+// @Accept       json
+// @Produce      json,plain
+// @Param        request body CredentialsRequest true "Username and password"
+// @Success      200 {object} LoginResponse
+// @Failure      400 {string} string "Invalid JSON"
+// @Failure      401 {string} string "Invalid credentials"
+// @Failure      500 {string} string "Internal server error"
+// @Router       /login [post]
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req CredentialsRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
@@ -51,6 +63,17 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Register godoc
+// @Summary      Register a user
+// @Tags         auth
+// @Accept       json
+// @Produce      plain
+// @Param        request body CredentialsRequest true "Username and password"
+// @Success      201 "User registered"
+// @Failure      400 {string} string "Invalid request or registration data"
+// @Failure      409 {string} string "Username already exists"
+// @Failure      500 {string} string "Internal server error"
+// @Router       /register [post]
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req CredentialsRequest
 	err := json.NewDecoder(r.Body).Decode(&req)

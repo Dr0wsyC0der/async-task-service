@@ -16,6 +16,10 @@ import (
 // @description     API for asynchronous code execution tasks.
 // @host             localhost:8000
 // @BasePath         /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Enter Bearer followed by a space and the session token from POST /login.
 func main() {
 	memoryRepo := memory.NewTaskStorage()
 	userRepo := memory.NewUserStorage()
