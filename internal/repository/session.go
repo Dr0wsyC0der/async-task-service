@@ -6,5 +6,5 @@ import (
 
 type SessionRepository interface {
 	Create(session domain.Session) error
-	GetByLogin(login string) (domain.Session, error)
+	GetByID(id string) (domain.Session, error)
 }
