@@ -16,15 +16,31 @@ import (
 // @description     API for asynchronous code execution tasks.
 // @host             localhost:8000
 // @BasePath         /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+// @description Enter Bearer followed by a space and the session token from POST /login.
 func main() {
 	memoryRepo := memory.NewTaskStorage()
+	userRepo := memory.NewUserStorage()
+	sessionRepo := memory.NewSessionStorage()
+	authService := service.NewAuthService(userRepo, sessionRepo)
 	taskService := service.NewTaskService(memoryRepo)
 	taskHandler := handler.NewTaskHandler(taskService)
+	authHandler := handler.NewAuthHandler(authService)
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /task", taskHandler.CreateTask)
-	mux.HandleFunc("GET /status/{task_id}", taskHandler.GetTaskStatus)
-	mux.HandleFunc("GET /result/{task_id}", taskHandler.GetTaskResult)
+	mux.Handle("POST /task",
+		handler.RequireSession(sessionRepo, http.HandlerFunc(taskHandler.CreateTask)),
+	)
+	mux.Handle("GET /status/{task_id}",
+		handler.RequireSession(sessionRepo, http.HandlerFunc(taskHandler.GetTaskStatus)),
+	)
+	mux.Handle("GET /result/{task_id}",
+		handler.RequireSession(sessionRepo, http.HandlerFunc(taskHandler.GetTaskResult)),
+	)
+	mux.HandleFunc("POST /register", authHandler.Register)
+	mux.HandleFunc("POST /login", authHandler.Login)
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 	log.Fatal(http.ListenAndServe(":8000", mux))
 }

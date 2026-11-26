@@ -39,9 +39,11 @@ func NewTaskHandler(service *service.TaskService) *TaskHandler {
 // @Tags         tasks
 // @Accept       json
 // @Produce      json
+// @Security     BearerAuth
 // @Param        request body CreateTaskRequest true "Task data"
 // @Success      201 {object} CreateTaskResponse
 // @Failure      400 {string} string "Invalid request"
+// @Failure      401 {string} string "Missing or invalid session token"
 // @Failure      500 {string} string "Internal server error"
 // @Router       /task [post]
 func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
@@ -69,8 +71,10 @@ func (h *TaskHandler) CreateTask(w http.ResponseWriter, r *http.Request) {
 // @Description  Returns the current processing status of a task
 // @Tags         tasks
 // @Produce      json
+// @Security     BearerAuth
 // @Param        task_id path string true "Task ID"
 // @Success      200 {object} TaskStatusResponse
+// @Failure      401 {string} string "Missing or invalid session token"
 // @Failure      404 {string} string "Task not found"
 // @Router       /status/{task_id} [get]
 func (h *TaskHandler) GetTaskStatus(w http.ResponseWriter, r *http.Request) {
@@ -91,10 +95,12 @@ func (h *TaskHandler) GetTaskStatus(w http.ResponseWriter, r *http.Request) {
 // @Description  Returns the result of a completed task
 // @Tags         tasks
 // @Produce      json
+// @Security     BearerAuth
 // @Param        task_id path string true "Task ID"
 // @Success      200 {object} TaskResultResponse
+// @Success      202 "Task is still processing"
+// @Failure      401 {string} string "Missing or invalid session token"
 // @Failure      404 {string} string "Task not found"
-// @Failure      202 {string} string "Task is still processing"
 // @Router       /result/{task_id} [get]
 func (h *TaskHandler) GetTaskResult(w http.ResponseWriter, r *http.Request) {
 	taskID := r.PathValue("task_id")

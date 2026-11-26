@@ -20,6 +20,21 @@ definitions:
       task_id:
         type: string
     type: object
+  handler.CredentialsRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  handler.LoginResponse:
+    properties:
+      token:
+        type: string
+    type: object
   handler.TaskResultResponse:
     properties:
       result:
@@ -37,6 +52,72 @@ info:
   title: Code Execution Service API
   version: "1.0"
 paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Verify credentials and return a session token.
+      parameters:
+      - description: Username and password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CredentialsRequest'
+      produces:
+      - application/json
+      - text/plain
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.LoginResponse'
+        "400":
+          description: Invalid JSON
+          schema:
+            type: string
+        "401":
+          description: Invalid credentials
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Log in
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Username and password
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CredentialsRequest'
+      produces:
+      - text/plain
+      responses:
+        "201":
+          description: User registered
+        "400":
+          description: Invalid request or registration data
+          schema:
+            type: string
+        "409":
+          description: Username already exists
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Register a user
+      tags:
+      - auth
   /result/{task_id}:
     get:
       description: Returns the result of a completed task
@@ -55,12 +136,16 @@ paths:
             $ref: '#/definitions/handler.TaskResultResponse'
         "202":
           description: Task is still processing
+        "401":
+          description: Missing or invalid session token
           schema:
             type: string
         "404":
           description: Task not found
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Get task result
       tags:
       - tasks
@@ -80,10 +165,16 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/handler.TaskStatusResponse'
+        "401":
+          description: Missing or invalid session token
+          schema:
+            type: string
         "404":
           description: Task not found
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Get task status
       tags:
       - tasks
@@ -110,11 +201,24 @@ paths:
           description: Invalid request
           schema:
             type: string
+        "401":
+          description: Missing or invalid session token
+          schema:
+            type: string
         "500":
           description: Internal server error
           schema:
             type: string
+      security:
+      - BearerAuth: []
       summary: Create a new task
       tags:
       - tasks
+securityDefinitions:
+  BearerAuth:
+    description: Enter Bearer followed by a space and the session token from POST
+      /login.
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
